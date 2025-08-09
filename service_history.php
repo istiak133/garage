@@ -419,4 +419,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 </style>
 
+<?php include 'why_choose_us.php'; ?>
+
 <?php include 'footer.php'; ?>

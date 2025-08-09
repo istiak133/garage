@@ -926,4 +926,6 @@ $stats = $stats_result->fetch_assoc();
     }
 </script>
 
+<?php include 'why_choose_us.php'; ?>
+
 <?php include 'footer.php'; ?>
