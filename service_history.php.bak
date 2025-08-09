@@ -1,0 +1,342 @@
+<?php
+include 'config.php';
+
+$appointments = [];
+$search_performed = false;
+
+// Handle search form submission
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $client_phone = mysqli_real_escape_string($conn, $_POST['client_phone']);
+    $car_engine = mysqli_real_escape_string($conn, $_POST['car_engine']);
+    
+    // Search for appointments using phone and engine number
+    $search_query = "
+        SELECT a.*, m.name as mechanic_name, m.specialization 
+        FROM appointments a 
+        JOIN mechanics m ON a.mechanic_id = m.id 
+        WHERE a.client_phone = '$client_phone' AND a.car_engine = '$car_engine'
+        ORDER BY a.appointment_date DESC
+    ";
+    
+    $result = $conn->query($search_query);
+    
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $appointments[] = $row;
+        }
+    }
+    
+    $search_performed = true;
+}
+?>
+
+<?php include 'header.php'; ?>
+
+    <div class="card">
+        <div class="card-title">Service History Lookup</div>
+        
+        <div class="search-form">
+            <form method="post" action="">
+                <div class="search-form-inner">
+                    <div class="form-group">
+                        <label for="client_phone">Phone Number:</label>
+                        <input type="text" id="client_phone" name="client_phone" required 
+                               value="<?php echo isset($_POST['client_phone']) ? htmlspecialchars($_POST['client_phone']) : ''; ?>">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="car_engine">Car Engine Number:</label>
+                        <input type="text" id="car_engine" name="car_engine" required
+                               value="<?php echo isset($_POST['car_engine']) ? htmlspecialchars($_POST['car_engine']) : ''; ?>">
+                    </div>
+                    
+                    <div class="form-group search-button">
+                        <button type="submit" class="btn btn-primary">Search History</button>
+                    </div>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service History - Car Garage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .nav {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .nav a {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0 10px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        
+        .nav a:hover {
+            background: #0056b3;
+        }
+        
+        .nav a.active {
+            background: #28a745;
+        }
+        
+        .search-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            align-items: end;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .appointments-list {
+            margin-top: 30px;
+        }
+        
+        .appointment-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .appointment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .appointment-date {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .appointment-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .appointment-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .detail-group h4 {
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .detail-group p {
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .search-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Service History</h1>
+        
+        <div class="nav">
+            <a href="index.php">Book Appointment</a>
+            <a href="service_history.php" class="active">Service History</a>
+            <a href="admin.php">Admin Panel</a>
+        </div>
+        
+        <div class="search-form">
+            <h3>Search Your Service History</h3>
+            <p style="margin-bottom: 15px; color: #666;">Enter your phone number and car engine number to view your appointment history.</p>
+            
+            <form method="POST" action="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="client_phone">Phone Number:</label>
+                        <input type="text" id="client_phone" name="client_phone" 
+                               value="<?php echo isset($_POST['client_phone']) ? htmlspecialchars($_POST['client_phone']) : ''; ?>" 
+                               required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="car_engine">Car Engine Number:</label>
+                        <input type="text" id="car_engine" name="car_engine" 
+                               value="<?php echo isset($_POST['car_engine']) ? htmlspecialchars($_POST['car_engine']) : ''; ?>" 
+                               required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn">Search History</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <?php if ($search_performed): ?>
+            <div class="search-info">
+                <strong>Search Results:</strong> Found <?php echo count($appointments); ?> appointment(s) 
+                for phone: <?php echo htmlspecialchars($_POST['client_phone']); ?> 
+                and engine: <?php echo htmlspecialchars($_POST['car_engine']); ?>
+            </div>
+            
+            <div class="appointments-list">
+                <?php if (empty($appointments)): ?>
+                    <div class="no-results">
+                        <h3>No appointments found</h3>
+                        <p>No service history found with the provided phone number and car engine number.</p>
+                        <p><strong>Please check:</strong></p>
+                        <ul style="text-align: left; display: inline-block;">
+                            <li>Phone number is correct</li>
+                            <li>Car engine number matches exactly</li>
+                            <li>You have made appointments before</li>
+                        </ul>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($appointments as $appointment): ?>
+                        <div class="appointment-card">
+                            <div class="appointment-header">
+                                <div class="appointment-date">
+                                    <?php echo date('F j, Y', strtotime($appointment['appointment_date'])); ?>
+                                </div>
+                                <div class="appointment-status status-<?php echo $appointment['status']; ?>">
+                                    <?php echo ucfirst($appointment['status']); ?>
+                                </div>
+                            </div>
+                            
+                            <div class="appointment-details">
+                                <div class="detail-group">
+                                    <h4>Client Information</h4>
+                                    <p><strong>Name:</strong> <?php echo htmlspecialchars($appointment['client_name']); ?></p>
+                                    <p><strong>Phone:</strong> <?php echo htmlspecialchars($appointment['client_phone']); ?></p>
+                                    <p><strong>Address:</strong> <?php echo htmlspecialchars($appointment['client_address']); ?></p>
+                                </div>
+                                
+                                <div class="detail-group">
+                                    <h4>Car Information</h4>
+                                    <p><strong>License:</strong> <?php echo htmlspecialchars($appointment['car_license']); ?></p>
+                                    <p><strong>Engine:</strong> <?php echo htmlspecialchars($appointment['car_engine']); ?></p>
+                                </div>
+                                
+                                <div class="detail-group">
+                                    <h4>Mechanic Assigned</h4>
+                                    <p><strong>Name:</strong> <?php echo htmlspecialchars($appointment['mechanic_name']); ?></p>
+                                    <p><strong>Specialization:</strong> <?php echo htmlspecialchars($appointment['specialization']); ?></p>
+                                </div>
+                                
+                                <div class="detail-group">
+                                    <h4>Booking Information</h4>
+                                    <p><strong>Booked on:</strong> <?php echo date('M j, Y g:i A', strtotime($appointment['created_at'])); ?></p>
+                                    <p><strong>Appointment ID:</strong> #<?php echo $appointment['id']; ?></p>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+<?php include 'footer.php'; ?>

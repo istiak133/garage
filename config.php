@@ -3,7 +3,7 @@
 $servername = "localhost";
 $username = "root"; // Change this to your MySQL username
 $password = "";     // Change this to your MySQL password
-$dbname = "garaage";
+$dbname = "garage_management";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
